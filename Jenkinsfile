@@ -16,7 +16,7 @@ pipeline {
                       sonarsource/sonar-scanner-cli \
                       -Dsonar.projectKey=flask-welcome-app \
                       -Dsonar.sources=. \
-                      -Dsonar.host.url=http://docker.internal \
+                      -Dsonar.host.url=http://172.20.181.120:9000 \
                       -Dsonar.token=\$SONAR_TOKEN
                     """
                 }
