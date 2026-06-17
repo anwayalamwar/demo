@@ -22,15 +22,21 @@ pipeline {
                 }
             }
         }
-        stage('Deploy Container Locally') {
+                stage('Deploy as Swarm Service') {
             steps {
-                // 1. Stop and remove the old container if it exists
-                sh "docker rm -f ${CONTAINER_NAME} || true"
-                
-                // 2. Run the new container on port 5000
-                sh "docker run -d --name ${CONTAINER_NAME} -p 5000:5000 ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}"
+                script {
+                    // Check if the service already exists
+                    def serviceExists = sh(script: "docker service ls --filter name=welcome-service -q", returnStdout: true).trim()
+                    
+                    if (serviceExists) {
+                        // 1. If it exists, update it with the fresh image
+                        sh "docker service update --image ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} --force welcome-service"
+                    } else {
+                        // 2. If it is new, create the service on port 5000
+                        sh "docker service create --name welcome-service --publish 5000:5000 ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}"
+                    }
+                }
             }
         }
-    }
-}
+
 
