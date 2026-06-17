@@ -6,6 +6,22 @@ pipeline {
         IMAGE_TAG       = 'latest'
     }
     stages {
+        stage('SonarQube Code Scan') {
+            steps {
+                // Instantly scan your app.py file for vulnerabilities and security leaks
+                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                    sh """
+                    docker run --rm \
+                      -v "\$(pwd):/usr/src" \
+                      sonarsource/sonar-scanner-cli \
+                      -Dsonar.projectKey=flask-welcome-app \
+                      -Dsonar.sources=. \
+                      -Dsonar.host.url=http://localhost:9000 \
+                      -Dsonar.token=\$SONAR_TOKEN
+                    """
+                }
+            }
+        }
         stage('Build Image') {
             steps {
                 sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
@@ -24,15 +40,12 @@ pipeline {
         stage('Deploy to Swarm') {
             steps {
                 sh """
-                # 1. Smart Check: Initialize swarm if it is off
                 if ! docker info | grep -q "Swarm: active"; then
                     docker swarm init
                 fi
 
-                # 2. Cleanup: Remove the old service configuration
                 docker service rm welcome-service || true
 
-                # 3. Fresh Deploy with Resource Limits
                 docker service create \
                   --name welcome-service \
                   --publish mode=host,published=5000,target=5000 \
@@ -46,7 +59,7 @@ pipeline {
     
     post {
         success {
-            echo "SUCCESS: The pipeline completed perfectly and the Swarm service is live!"
+            echo "SUCCESS: Code scanned, image pushed, and Swarm service is live!"
         }
         failure {
             echo "FAILURE: The pipeline failed. Check the stage logs above."
