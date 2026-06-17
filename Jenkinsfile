@@ -23,9 +23,14 @@ pipeline {
         }
         stage('Deploy to Swarm') {
             steps {
-                // This single command safely creates the service if new, or updates it if it exists
                 sh """
-                docker service create --name welcome-service --publish 5000:5000 ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} || \
+                # 1. Smart Check: Only initialize if not already in a swarm
+                if ! docker info | grep -q "Swarm: active"; then
+                    docker swarm init
+                fi
+
+                # 2. Deploy or update using host mode to prevent routing mesh locks
+                docker service create --name welcome-service --publish mode=host,published=5000,target=5000 ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} || \
                 docker service update --image ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} --force welcome-service
                 """
             }
