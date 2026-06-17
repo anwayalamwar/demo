@@ -10,13 +10,14 @@ pipeline {
             steps {
                 // Instantly scan your app.py file for vulnerabilities and security leaks
                 withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
-                    sh """
+                 sh """
                     docker run --rm \
+                      --add-host=host.docker.internal:host-gateway \
                       -v "\$(pwd):/usr/src" \
                       sonarsource/sonar-scanner-cli \
                       -Dsonar.projectKey=flask-welcome-app \
                       -Dsonar.sources=. \
-                      -Dsonar.host.url=http://localhost:9000 \
+                      -Dsonar.host.url=http://docker.internal \
                       -Dsonar.token=\$SONAR_TOKEN
                     """
                 }
