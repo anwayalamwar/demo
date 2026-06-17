@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "<h1>Hello from your Docker container!</h1>"
+    return "<h1>Hello from your Docker container! this has been updated</h1>"
 
 if __name__ == '__main__':
     # host='0.0.0.0' allows outside connections
