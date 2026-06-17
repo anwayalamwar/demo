@@ -6,22 +6,23 @@ pipeline {
         IMAGE_TAG       = 'latest'
     }
     stages {
-        stage('SonarQube Code Scan') {
+                stage('SonarQube Code Scan') {
             steps {
                 withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
                     sh """
                     docker run --rm \
-                      --add-host=host.docker.internal:host-gateway \
                       -v "\$(pwd):/usr/src" \
                       sonarsource/sonar-scanner-cli \
                       -Dsonar.projectKey=flask-welcome-app \
                       -Dsonar.sources=. \
                       -Dsonar.host.url=http://172.20.181.120:9000 \
+                      -Dsonar.login=\$SONAR_TOKEN \
                       -Dsonar.token=\$SONAR_TOKEN
                     """
                 }
             }
         }
+
         stage('Build Image') {
             steps {
                 sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
