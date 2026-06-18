@@ -1,4 +1,4 @@
-from flask import Flask, render_code, render_template_string, request
+from flask import Flask, render_template_string, request
 
 app = Flask(__name__)
 
@@ -29,7 +29,7 @@ HTML_TEMPLATE = """
             <div class="grid">
                 <button type="submit" name="action" value="C" class="clear">C</button>
                 <button type="submit" name="action" value="(" class="operator">(</button>
-                <button type="submit" name="action" value=")" class="operator">)</button>
+                <button type="submit" name="action" value=")" class="operatorTracking">)</button>
                 <button type="submit" name="action" value="/" class="operator">/</button>
                 
                 <button type="submit" name="action" value="7">7</button>
@@ -61,7 +61,6 @@ HTML_TEMPLATE = """
 def calculator():
     current_expr = ""
     if request.method == 'POST':
-        # Get what was currently typed in the display screen
         current_expr = request.form.get('display', '')
         action = request.form.get('action')
 
@@ -69,13 +68,11 @@ def calculator():
             current_expr = ""
         elif action == '=':
             try:
-                # Calculate the math string safely using python eval
                 if current_expr:
                     current_expr = str(eval(current_expr))
             except Exception:
                 current_expr = "Error"
         else:
-            # If "Error" is visible, clear screen on next button press
             if current_expr == "Error":
                 current_expr = ""
             current_expr += str(action)
